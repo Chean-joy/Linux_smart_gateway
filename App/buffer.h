@@ -10,7 +10,6 @@ typedef struct BufferStruct
     int len;
     int size;
     int start;
-    int len;
     pthread_mutex_t lock;
 }Buffer;
 

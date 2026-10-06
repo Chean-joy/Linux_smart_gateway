@@ -35,6 +35,13 @@ void app_buffer_close(Buffer *buffer)
 
 int app_buffer_read(Buffer *buffer, void *ptr, int len)
 {
+    if(!buffer || !ptr)
+    {
+        log_warn("Buffer or buf not valid!!!");
+        return -1;
+    }
+
+    pthread_mutex_lock(&buffer->lock);
     //get how len ??
     if(len > buffer->len)
     {
@@ -43,6 +50,7 @@ int app_buffer_read(Buffer *buffer, void *ptr, int len)
 
     if(len == 0)
     {
+        pthread_mutex_unlock(&buffer->lock);
         return 0;
     }
 
@@ -57,16 +65,53 @@ int app_buffer_read(Buffer *buffer, void *ptr, int len)
     {   //read 2
         int first_len = buffer->size - buffer->start;
         memcpy(ptr,buffer->ptr + buffer->start,first_len);
-
         memcpy(ptr+first_len,buffer->ptr,(len - first_len));
-
         buffer->start = (len - first_len);
     }   
 
+    buffer->len -= len;
+    pthread_mutex_unlock(&buffer->lock);
+    log_trace("Buffer status after read: start %d,len %d",
+        buffer->start,buffer->len);
     return len;
 }
 
 int app_buffer_write(Buffer *buffer, void *ptr, int len)
 {
+     if(!buffer || !ptr)
+    {
+        log_warn("Buffer or buf not valid!!!");
+        return -1;
+    }
+
+    if(buffer->len + len > buffer->size)
+    {
+        //No Enought Memroy
+        pthread_mutex_lock(&buffer->lock);
+        log_warn("buff %p is full",buffer);
+        return -1;
+    }
+    int write_offset = buffer->start + buffer->len;
+    if(write_offset > buffer->size)
+    {
+        write_offset -= buffer->size;
+    }
+
+    //get last memroy
+    if(write_offset + len <= buffer->size)
+    {
+        memcpy(buffer->ptr+write_offset,ptr,len);
+    }
+    else
+    {
+        int first_len = buffer->size - write_offset;
+        memcpy(buffer->ptr + write_offset,ptr,first_len);
+        memcpy(buffer->ptr,ptr+first_len,len - first_len);
+    }
+
+    buffer->len += len;
+    log_trace("BUffer status after write:start %d,len %d",
+        buffer->start,buffer->len);
+    pthread_mutex_unlock(&buffer->lock);
     return 0;
 }
