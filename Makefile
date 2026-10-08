@@ -33,3 +33,9 @@ test_mqtt:$(OBJS) Test/test_mqtt.o
 	-@./$@
 	-@$(RM) $@ $^	
 
+test_message:$(OBJS) Test/test_message.o
+	-@$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS) $(LDLIBS)
+	-@./$@
+	-@$(RM) $@ $^	
+
+
