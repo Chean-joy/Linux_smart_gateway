@@ -39,3 +39,8 @@ test_message:$(OBJS) Test/test_message.o
 	-@$(RM) $@ $^	
 
 
+test_task:$(OBJS) Test/test_task.o
+	-@$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS) $(LDLIBS)
+	-@./$@
+	-@$(RM) $@ $^
+
