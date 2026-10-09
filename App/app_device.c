@@ -75,7 +75,7 @@ static void app_device_defalutRecvTask(void *ARGV)
 
 }
 
-int app_device_init(Device *device, char *filename, ConnectionType type)
+int app_device_init(Device *device, char *filename)
 {
     device->filename = malloc(strlen(filename)+1);
     if(!device->filename)
@@ -108,7 +108,7 @@ int app_device_init(Device *device, char *filename, ConnectionType type)
         log_warn("Device Open failed!!!");
         goto DEVICE_SEND_BUFF_EXIT;
     }
-    device->connection_type = type; 
+    device->connection_type = CONNECTION_TYPE_NONE; 
     if(app_buffer_init(device->recv_buffer,BUFFER_LEN)<0)
     {
         log_warn("recv_buffer init fail!!!\n");

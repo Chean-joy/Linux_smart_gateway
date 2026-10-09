@@ -31,7 +31,7 @@ struct VTable
     int (*recv_callback)(void *ptr,int len); 
 };
 
-int app_device_init(Device *device ,char *filename,ConnectionType type);
+int app_device_init(Device *device ,char *filename);
 
 int app_device_write(Device *device,void *ptr,int len);
 
