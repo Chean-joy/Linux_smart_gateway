@@ -24,7 +24,7 @@ clean:
 	$(RM) $(OBJS) $(TARGET) main.o
 
 test_buffer:$(OBJS) Test/test_buffer.o
-	-@$(CC) $(CFLAGS) -o $@ $^
+	-@$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS) $(LDLIBS)
 	-@./$@
 	-@$(RM) $@ $^
 

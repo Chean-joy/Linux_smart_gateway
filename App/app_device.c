@@ -33,6 +33,8 @@ static void *app_device_background(void *argv)
         }
         app_task_registerTask(device->vbtr->recv_task,device);
     }
+
+    return NULL;
 }
 
 
@@ -51,7 +53,7 @@ static void app_device_defalutSendTask(void * ARGV)
         device->vbtr->pre_write(device,temp_buf,&buf_len);
     }
 
-    if(&buf_len > 0)
+    if(buf_len > 0)
     {
         write(device->fd,temp_buf,buf_len);
     }
