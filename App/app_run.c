@@ -1,90 +1,32 @@
-#include "app_router.h"
+#include "app_runner.h"
 
-#include <string.h>
+#include <signal.h>
+#include <assert.h>
 
-#define MAX_DEVICE_NUM 10
+static SerialDevices device;
 
-static Device *devices[MAX_DEVICE_NUM];
-static int device_num = 0;
-
-static int app_router_mqttCallback(unsigned char *json_str,int len)
+static void app_runner_stop(int sig)
 {
-    unsigned char temp_buf[1024];
-    Message message;
-
-    if(app_message_initByJson(&message,json_str,len) < 0)
-    {
-        return -1;
-    }
-
-    int Bin_len = app_message_saveBinary(&message,temp_buf,1024);
-
-    app_message_destroy(&message);
-    if(Bin_len < 0)
-    {
-        log_warn("app_message_saveBinary:Buffer not enough");
-        return -1;
-    }
-
-    for(int i = 0;i < device_num ; i++)
-    {
-        if((int)temp_buf[0] == devices[i]->connection_type)
-        {
-            return app_device_write(devices[i],temp_buf,Bin_len);
-        }
-    }
-
-    log_warn("app_router_mqttCallback: no devices found!!");
-    return -1;
+    assert(sig == SIGINT || sig == SIGTERM);
+    app_router_close();
+    app_task_close();
 }
 
-static int app_router_deviceCallback(void *ptr,int len)
+int app_runner_run()
 {
-    char temp_buf[1024];
-    Message message;
-    if(app_message_initByBinary(&message,ptr,len)<0)
-    {
-        return -1;
-    }
+    signal(SIGINT,app_runner_stop);
+    signal(SIGTERM,app_runner_stop);
 
-    int result = app_message_saveJson(&message,
-        temp_buf,sizeof(temp_buf));
-    
-    app_message_destroy(&message);
-    if(result < 0)
-    {
-        return -1;
-    }
+    app_task_init(5);
 
-    return app_mqtt_send(temp_buf,strlen(temp_buf));
-}   
+    app_serial_init(&device,"/dev/ttyS2");
+    app_bluetooth_setConnectionType(&device);
 
-int app_router_init(void)
-{
-    //init mqtt
-    if(app_mqtt_init() < 0)
-    {
-        return -1;
-    }
-    app_mqtt_registerRecvCallback(app_router_mqttCallback);
+    app_router_init();
+
+    app_router_registerDevice((Device *)&device);
+
+    app_task_wait();
+
     return 0;
 }
-
-int app_router_registerDevice(Device * device)
-{
-    devices[device_num++] = device;
-    app_device_start(device);
-    app_device_registerRecvCallback(device,
-        app_router_deviceCallback);
-    return 0;
-}
-
-void app_router_close()
-{   
-    for(int i =0 ; i < MAX_DEVICE_NUM ; i++)
-    {
-        app_device_stop(devices[i]);
-        app_device_close(devices[i]);
-    }
-}
-
