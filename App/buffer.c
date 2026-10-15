@@ -83,10 +83,12 @@ int app_buffer_write(Buffer *buffer, void *ptr, int len)
         log_warn("Buffer or buf not valid!!!");
         return -1;
     }
+    pthread_mutex_unlock(&buffer->lock);
 
     if(buffer->len + len > buffer->size)
     {
         //No Enought Memroy
+        
         pthread_mutex_lock(&buffer->lock);
         log_warn("buff %p is full",buffer);
         return -1;
