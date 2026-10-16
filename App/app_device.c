@@ -128,7 +128,7 @@ int app_device_init(Device *device, char *filename)
     device->vbtr->recv_task = app_device_defalutRecvTask;
     device->vbtr->pre_write = NULL;
     device->vbtr->post_read = NULL;
-    device->vbtr->recv_callback = app_device_registerRecvCallback;
+    device->vbtr->recv_callback = NULL;
     return 0;
 DEVICE_RECV_INIT_FAIL:
     app_buffer_close(device->recv_buffer);
